@@ -130,7 +130,12 @@ public class JsonParserUtils {
         reader.beginObject();
         while (reader.hasNext()) {
             try {
-                result.put(reader.nextName(), parseNextValue(reader, false));
+                String name = reader.nextName();
+                Object value = parseNextValue(reader, false);
+                if (value == null) {
+                    value = JSONObject.NULL;
+                }
+                result.put(name, value);
             } catch (JSONException e) {
                 throw new RuntimeException("This should be impossible.", e);
             }
@@ -287,6 +292,9 @@ public class JsonParserUtils {
                                            parserTable);
             } else if (valueClass.isInstance(o)) {
                 result = cast(o);
+            } else if (o == JSONObject.NULL) {
+                map.put(name, null);
+                continue;
             }
 
             if (result != null) {
@@ -633,6 +641,9 @@ public class JsonParserUtils {
 
             // No matching parser has been found yet; save the current name and value to the
             // jsonObject.
+            if (value == null) {
+                value = JSONObject.NULL;
+            }
             try {
                 jsonObject.put(name, value);
             } catch (JSONException e) {
